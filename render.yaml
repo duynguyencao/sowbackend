@@ -9,7 +9,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 10000
+        value: 8001
       - key: DB_HOST
         fromDatabase:
           name: sow99-db
