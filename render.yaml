@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: sow99-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_HOST
+        fromDatabase:
+          name: sow99-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: sow99-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: sow99-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: sow99-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: sow99-db
+          property: password
+
+databases:
+  - name: sow99-db
+    plan: free
+    databaseName: sow99
+    user: sow99_user
