@@ -1,16 +1,34 @@
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/database.js';
 
+function formatToParagraphs(source) {
+  if (!source) return '';
+  const text = String(source).trim();
+  if (!text) return '';
+  // Prefer explicit blank lines as paragraph separators
+  if (/\n/.test(text)) {
+    return text
+      .split(/\n{2,}/)
+      .map(p => p.trim())
+      .filter(p => p)
+      .map(p => `<p>${p}</p>`)
+      .join('');
+  }
+  // Otherwise, split on sentence boundaries: punctuation followed by a capital letter
+  const normalized = text.replace(/\s+/g, ' ');
+  const parts = normalized.split(/(?<=[.!?])\s+(?=[A-ZÅÄÖÉ])/);
+  return parts
+    .map(p => p.trim())
+    .filter(Boolean)
+    .map(p => `<p>${p}</p>`)
+    .join('');
+}
+
 const TermsContent = sequelize.define('TermsContent', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
-  },
-  section: {
-    type: DataTypes.STRING(100),
-    allowNull: false,
-    comment: 'Section identifier (e.g., "introduction", "privacy", "cookies")'
   },
   title_en: {
     type: DataTypes.STRING(255),
@@ -28,27 +46,23 @@ const TermsContent = sequelize.define('TermsContent', {
     type: DataTypes.TEXT,
     allowNull: false
   },
-  order: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0
+  content_html_en: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      const raw = this.getDataValue('content_en');
+      return formatToParagraphs(raw);
+    }
   },
-  is_active: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: true
+  content_html_sv: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      const raw = this.getDataValue('content_sv');
+      return formatToParagraphs(raw);
+    }
   }
 }, {
   tableName: 'terms_content',
-  timestamps: true,
-  indexes: [
-    {
-      fields: ['section', 'is_active']
-    },
-    {
-      fields: ['order']
-    }
-  ]
+  timestamps: true
 });
 
 export default TermsContent;
